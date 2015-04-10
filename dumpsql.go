@@ -52,7 +52,7 @@ type CardText struct {
 var dbName = flag.String("db", "cards.cdb", "database name")
 
 // print banner
-// for card in card:
+// for card in cards:
 //   if card in whitelist:
 //      write card to file
 // print footer
@@ -66,7 +66,8 @@ func main() {
 
 	cardData := make(map[int]CardData)
 	var tmp []CardData
-	db.Select(&tmp, "select * from datas")
+	err := db.Select(&tmp, "select * from datas")
+	catch(err)
 	for _, card := range tmp {
 		cardData[card.Id] = card
 	}
