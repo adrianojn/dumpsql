@@ -72,29 +72,53 @@ func main() {
 		cardData[card.Id] = card
 	}
 
+	cardText := make(map[int]CardText)
+	var tmp2 []CardText
+	err = db.Select(&tmp2, "select * from texts")
+	catch(err)
+	for _, card := range tmp2 {
+		cardText[card.Id] = card
+	}
+
 	file, err := os.Create(outputFilename)
 	catch(err)
 	defer file.Close()
 
 	cardList := loadCardList(inputFilename)
-	fmt.Println(len(cardList), "loaded")
+	fmt.Println(len(cardList), "cards")
 
 	_, err = file.WriteString("BEGIN TRANSACTION;\r\n")
 	catch(err)
 
 	for _, id := range cardList {
-		c := cardData[id]
-		fmt.Println("found", c)
-		_, err := file.WriteString(formatCardData(c))
+		data := cardData[id]
+		_, err := file.WriteString(formatCardData(data))
+		text := cardText[id]
+		_, err = file.WriteString(formatCardText(text))
 		catch(err)
 	}
 	file.WriteString("COMMIT;\r\n")
 }
 
 func formatCardData(c CardData) string {
-	return fmt.Sprintf("INSERT OR REPLACE INTO \"datas\" VALUES (%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d);\r\n",
+	return fmt.Sprintf("INSERT OR REPLACE INTO \"datas\" VALUES "+
+		"(%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d);\r\n",
 		c.Id, c.Ot, c.Alias, c.Setcode, c.Type, c.Atk, c.Def,
 		c.Level, c.Race, c.Attribute, c.Category)
+}
+
+func formatCardText(c CardText) string {
+	return fmt.Sprintf("INSERT OR REPLACE INTO \"texts\" VALUES "+
+		"(%d, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "+
+		"'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');\r\n",
+		c.Id, q(c.Name), q(c.Desc), q(c.Str1), q(c.Str2), q(c.Str3), q(c.Str4),
+		q(c.Str5), q(c.Str6), q(c.Str7), q(c.Str8), q(c.Str9), q(c.Str10),
+		q(c.Str11), q(c.Str12), q(c.Str13), q(c.Str14), q(c.Str15), q(c.Str16))
+
+}
+
+func q(s string) string {
+	return strings.Replace(s, `'`, `''`, -1)
 }
 
 func loadCardList(filename string) []int {
