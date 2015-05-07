@@ -91,7 +91,11 @@ func main() {
 	catch(err)
 
 	for _, id := range cardList {
-		data := cardData[id]
+		data, found := cardData[id]
+		if !found {
+			file.WriteString(fmt.Sprintf("-- %d\r\n", id))
+			continue
+		}
 		_, err := file.WriteString(formatCardData(data))
 		text := cardText[id]
 		_, err = file.WriteString(formatCardText(text))
